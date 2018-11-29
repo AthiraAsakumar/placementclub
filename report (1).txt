@@ -1,0 +1,582 @@
+event.html
+----------
+<div class="login-page">
+    <notifier-container></notifier-container>
+    <div class="form">
+      <form class="login-form">
+        <h1 style="color:rgba(0, 0, 0, 0.562);">Event Registration</h1>
+        <input type="text" name="eventName" placeholder="EventName" [(ngModel)]="datasource && datasource.eventName"
+          [required]="true" />
+        <input type="text" name="eventmsg" placeholder="EventMessage" [(ngModel)]="datasource && datasource.eventmsg"
+          [required]="true" />
+          <input type="text" name="eventCriteria1" placeholder="criteria1" [(ngModel)]="datasource && datasource.eventCriteria1"
+          [required]="true" />
+          <input type="text" name="eventCriteria2" placeholder="criteria2" [(ngModel)]="datasource && datasource.eventCriteria2"
+          [required]="true" />
+        <button (click)='event()'>ADD EVENT</button>
+          </form>
+    </div>
+  </div>
+
+event.css
+---------
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+.login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+}
+.form {
+  position: relative;
+  z-index: 1;
+  background: rgb(255, 255, 255);
+  max-width: 360px;
+  margin: 0 auto 100px;
+  padding: 45px;
+  text-align: center;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+.form input {
+  font-family: "Roboto", sans-serif;
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+.form button:hover,.form button:active,.form button:focus {
+  background: #43A047;
+}
+.form .message {
+  margin: 15px 0 0;
+  color: #b3b3b3;
+  font-size: 12px;
+}
+.form .message a {
+  color: #4CAF50;
+  text-decoration: none;
+}
+.form .register-form {
+  display: none;
+}
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.container:before, .container:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.container .info {
+  margin: 50px auto;
+  text-align: center;
+}
+.container .info h1 {
+  margin: 0 0 15px;
+  padding: 0;
+  font-size: 36px;
+  font-weight: 300;
+  color: #1a1a1a;
+}
+.container .info span {
+  color: #4d4d4d;
+  font-size: 12px;
+}
+.container .info span a {
+  color: #000000;
+  text-decoration: none;
+}
+.container .info span .fa {
+  color: #EF3B3A;
+}
+body {
+  background: #57f011; /* fallback for old browsers */
+  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
+  background: -moz-linear-gradient(right, #76b852, #8DC26F);
+  background: -o-linear-gradient(right, #76b852, #8DC26F);
+  background: linear-gradient(to left, #76b852, #8DC26F);
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+event.ts
+--------
+import { Component, OnInit } from '@angular/core';
+import { NotifierService } from 'angular-notifier';
+import { EventService } from './event.service';
+import { error } from 'util';
+import { EocCacheService } from '../common-services/cache-service';
+
+@Component({
+  selector: 'app-event',
+  templateUrl: './event.component.html',
+  styleUrls: ['./event.component.css']
+})
+export class EventComponent implements OnInit {
+  userObservable: any;
+  datasource: DataSource;
+  private readonly notifier: NotifierService;
+  personName: string;
+  router: any;
+
+  constructor(
+    private eventCheck: EventService,
+    notifierService: NotifierService
+  ) {
+    this.notifier = notifierService;
+  }
+
+  ngOnInit() {
+    this.datasource = {
+      eventName: '',
+      eventmsg: '',
+      eventCriteria1:  '',
+      eventCriteria2:  '',
+         };
+  }
+  event() {
+    this.eventCheck.eventCheck(this.datasource).subscribe(success => {
+      this.userObservable = success.data;
+      console.log(this.userObservable);
+      //     if (success.response === true) {
+      //       this.cache.set('account', {
+      //         userdetails: success.data
+      //       } );
+      //       this.notifier.notify( 'success', 'Profile Added Successful!' );
+      //       console.log('login success' + JSON.stringify(this.userObservable));
+      //       window.location.reload();
+      //       this.router.navigate(['/event']);
+      //     } else {
+      //       this.notifier.notify( 'error', success.message);
+      //       console.error('error' + JSON.stringify(this.userObservable));
+
+      //     }
+      //   },
+      //   err => {
+      //     this.userObservable = error;
+      //     this.notifier.notify( 'error', 'Profile added Unsuccessful!' );
+      //     console.error('error' + JSON.stringify(this.userObservable));
+      //   }
+    });
+  }
+}
+export interface DataSource {
+  eventName: string;
+  eventmsg: string;
+  eventCriteria1: string;
+  eventCriteria2: string;
+}
+
+
+event.spec.ts
+-------------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { EventComponent } from './event.component';
+
+describe('ProfileComponent', () => {
+  let component: EventComponent;
+  let fixture: ComponentFixture<EventComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ EventComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(EventComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+footer.html
+-----------
+<style>
+  .bg-4 {
+      background-color: #2f2f2f;
+      color: #ffffff;
+  }
+  </style>
+  <div class="card text-center">
+    <div class="card-body">
+      <h5 class="card-title">Objective</h5>
+      <p class="card-text">Training and Placement Cell is to guide students to choose right career and to give knowledge, skill, and aptitude and meet the manpower requirements of the Industry.</p>
+    </div>
+
+  <footer class="container-fluid bg-4 text-center">
+
+      Placement Club<br>
+      Training and Placement Officer:Prof. Padmakumar P
+      <br>Phone Number:9496774025
+      <br>Email       :placement@sngce.ac.in, padmakumarthampi@gmail.com
+
+  </footer>
+
+footer.spec.ts
+---------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { FooterComponent } from './footer.component';
+
+describe('FooterComponent', () => {
+  let component: FooterComponent;
+  let fixture: ComponentFixture<FooterComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ FooterComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(FooterComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+footer.ts
+---------
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-footer',
+  templateUrl: './footer.component.html',
+  styleUrls: ['./footer.component.css']
+})
+export class FooterComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+
+header.html
+-----------
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" routerLink="/home" routerLinkActive="active">
+    <h2>Placement Club</h2>
+  </a>
+
+  <div class="collapse navbar-collapse " id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item ">
+        <a class="nav-link" routerLink="/home" routerLinkActive="active">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item "*ngIf="!showHideLogReg">
+        <a class="nav-link" routerLink="/notification" routerLinkActive="active">Announcements <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item "*ngIf="!showHideLogReg">
+        <a class="nav-link" routerLink="/profile" routerLinkActive="active">Profile <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" routerLink="/event" routerLinkActive="active">Event Registration <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" routerLink="/records" routerLinkActive="active">Placement Records <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item ">
+          <a class="nav-link" routerLink="/recruiters" routerLinkActive="active">Recruiters <span class="sr-only">(current)</span></a>
+        </li>
+      <!-- <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Dropdown
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div></li> -->
+    </ul>
+
+    <!-- <form class="form-inline my-2 my-lg-0">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form> -->
+  </div>
+
+  <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+    <ul class="navbar-nav ">
+      <li *ngIf="showHideLogReg" class="nav-item ">
+        <a class="nav-link " routerLink="/login" routerLinkActive="active">Login<span class="sr-only">(current)</span></a>
+      </li>
+      <li *ngIf="showHideLogReg" class="nav-item ">
+        <a class="nav-link" routerLink="/registration" routerLinkActive="active">Register <span class="sr-only">(current)</span></a>
+      </li>
+      <li *ngIf="!showHideLogReg" class="nav-item ">
+        <a class="nav-link" (click)="logout()">Logout</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+header.ts
+---------
+import { Component, OnInit } from '@angular/core';
+import { EocCacheService } from '../common-services/cache-service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
+})
+export class HeaderComponent implements OnInit {
+
+  showHideLogReg: boolean;
+  userId: any;
+  constructor(
+    private cache: EocCacheService,
+    private router: Router
+    ) { }
+
+  ngOnInit() {
+    this.showHideLogReg = true;
+    const user = this.cache.get('user');
+    if (user.userdetails.user_id !== 'guest') {
+      this.showHideLogReg = false;
+    } else {
+      this.showHideLogReg = true;
+  }
+  }
+  logout() {
+    const user = this.cache.removeall();
+    window.location.reload();
+    this.router.navigate(['/home']);
+  }
+}
+
+home.html
+---------
+
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+      </ol>
+  <div class="carousel-inner ">
+    <div class="carousel-item active">
+      <img class="d-block w-100 img-fluid" src="assets/image/slider.jpg" alt="First slide">
+    </div>
+    <div class="carousel-item">
+      <img class="d-block w-100 img-fluid" src="assets/image/slider.jpg" alt="Second slide">
+    </div>
+    <div class="carousel-item">
+      <img class="d-block w-100 img-fluid" src="assets/image/slider.jpg" alt="Third slide">
+    </div>
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+
+
+
+<div class="card-deck">
+  <div class="card">
+    <img class="card-img-top img-fluid" src="assets/image/sngce1.png" alt="Card image cap">
+    <div class="card-body">
+      <h5 class="card-title">ABOUT SNGCE PLACEMENTCELL</h5>
+      <p class="card-text">The Institute helps each student in exploring placement opportunities by inviting various companies for campus recruitment of students who are in the final year of the programme and are likely to graduate at the end of the academic year.
+        The final placements, at the Institute, are a result of very systematic interaction with the industry and continuous career counseling of the students. Right from the beginning of the programme, students are continuously counseled with regard to his/her career aspirations and options, which in turn is vigorously followed up with the potential companies for participating in the placement programme of the Institute. This not only helps the students in getting their ‘dream’ jobs but also assists the visiting placement companies in identifying the ‘right’ candidate for their organization. However, the placement will be governed by Placement guidelines:
+      </p>
+      <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top img-fluid" src="assets/image/home.png" alt="Card image cap">
+    <div class="card-body">
+      <h5 class="card-title">PLACEMENT ELIGIBILTY </h5>
+      <p class="card-text">Students who fail to clear the academic exams & other formalities at the end of course, shall be removed from the placement process and hence will not be eligible for campus placement activities. Any major disciplinary actions will terminate the student from campus placement activities.</p>
+      <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+    </div>
+  </div>
+  <div class="card">
+    <img class="card-img-top img-fluid" src="assets/image/sngce3.jpg" alt="Card image cap">
+    <div class="card-body">
+      <h5 class="card-title">GUIDELINES FOR PLACEMENTS</h5>
+      <p class="card-text">The final placement is governed by certain guidelines, which are framed to facilitate the students to get maximum benefits. These guidelines are revised from time to time.The placement activity is primarily managed by the Placement Committee headed by Director of the institute as Chairperson with the help of the Manager Corporate Relations and other committee members which includes faculties and students from various departments.
+
+
+
+        The Broad Activities Undertaken by the Placement Cell are:
+
+
+        Formation of Students’ Placement Committees for final placement and also for getting industrial training and industry linked project work for students.
+
+        Preparation of Placement Brochure for final placement.
+        Pre-placement visits (PPV) to the companies.
+        Communication, networking and relationship building with the potential recruiters
+        Invitation to potential recruiters to visit the Institute.
+        Continuation of placement activities after the stipulated period, till all the students are placed.
+        Grooming and training of the candidates for the placements so that their chances of selection increase.
+        General follow-up, joining formalities and other administrative activities.
+        Institute Placement Committee
+
+
+        The placement related activities, at the Institute, are carried out by Placement committee – it comprises of faculties from various departments of the institute. Student representatives from various branches who are in their final year are also appointed as committee members. The committee is headed by Director of the Institute and Manager Corporate Relations acts as a member secretary. The placement committee is usually formed in the month of July.</p>
+
+
+
+        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+    </div>
+  </div>
+</div>
+
+<h2 >What our students say</h2>
+<div id="myCarousel" class="carousel slide text-center" data-ride="carousel">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#myCarousel" data-slide-to="1"></li>
+    <li data-target="#myCarousel" data-slide-to="2"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    <div class="item active">
+
+    <h4>"This company is the best. I am so happy with the result!"<br><span style="font-style:normal;">Michael Roe, Vice President, Comment Box</span></h4>
+    </div>
+    <div class="item">
+      <h4>"One word... WOW!!"<br><span style="font-style:normal;">John Doe, Salesman, Rep Inc</span></h4>
+    </div>
+    <div class="item">
+      <h4>"Could I... BE any more happy with this company?"<br><span style="font-style:normal;">Chandler Bing, Actor, FriendsAlot</span></h4>
+    </div>
+  </div>
+
+  <!-- Left and right controls -->
+  <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+
+home.css
+--------
+
+.card-deck {
+  padding-top: 65px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 65px;
+}
+.carousel-control.right, .carousel-control.left {
+  background-image: none;
+  color: #f4511e;
+}
+
+.carousel-indicators li {
+  border-color: #f4511e;
+}
+
+.carousel-indicators li.active {
+  background-color: #f4511e;
+}
+
+.item h4 {
+  font-size: 19px;
+  line-height: 1.375em;
+  font-weight: 400;
+  font-style: italic;
+  margin: 70px 0;
+}
+
+.item span {
+  font-style: normal;
+}
+
+home.ts
+-------
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+
+home.spec.ts
+------------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { HomeComponent } from './home.component';
+
+describe('HomeComponent', () => {
+  let component: HomeComponent;
+  let fixture: ComponentFixture<HomeComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ HomeComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

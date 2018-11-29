@@ -1,0 +1,768 @@
+login.html
+----------
+<div class="login-page">
+  <notifier-container></notifier-container>
+  <div class="form">
+    <form class="login-form">
+      <h1 style="color:rgba(0, 0, 0, 0.562);">Login</h1>
+      <input type="text" name="username" placeholder="Username" [(ngModel)]="datasource && datasource.username"
+        [required]="true" />
+      <input type="password" name="password" placeholder="Password" [(ngModel)]="datasource && datasource.password"
+        [required]="true" />
+      <button (click)='login()'>login</button>
+      <p class="message">Not registered? <a routerLink="/registration">Create an account</a></p>
+
+    </form>
+  </div>
+</div>
+
+login.css
+---------
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+.login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+}
+.form {
+  position: relative;
+  z-index: 1;
+  background: rgb(255, 255, 255);
+  max-width: 360px;
+  margin: 0 auto 100px;
+  padding: 45px;
+  text-align: center;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+.form input {
+  font-family: "Roboto", sans-serif;
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+.form button:hover,.form button:active,.form button:focus {
+  background: #43A047;
+}
+.form .message {
+  margin: 15px 0 0;
+  color: #b3b3b3;
+  font-size: 12px;
+}
+.form .message a {
+  color: #4CAF50;
+  text-decoration: none;
+}
+.form .register-form {
+  display: none;
+}
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.container:before, .container:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.container .info {
+  margin: 50px auto;
+  text-align: center;
+}
+.container .info h1 {
+  margin: 0 0 15px;
+  padding: 0;
+  font-size: 36px;
+  font-weight: 300;
+  color: #1a1a1a;
+}
+.container .info span {
+  color: #4d4d4d;
+  font-size: 12px;
+}
+.container .info span a {
+  color: #000000;
+  text-decoration: none;
+}
+.container .info span .fa {
+  color: #EF3B3A;
+}
+body {
+  background: #57f011; /* fallback for old browsers */
+  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
+  background: -moz-linear-gradient(right, #76b852, #8DC26F);
+  background: -o-linear-gradient(right, #76b852, #8DC26F);
+  background: linear-gradient(to left, #76b852, #8DC26F);
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+login.ts
+--------
+import { Component, OnInit } from '@angular/core';
+import { LoginService } from './login.service';
+import { NotifierService } from 'angular-notifier';
+import { Router } from '@angular/router';
+import { EocCacheService } from '../common-services/cache-service';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+
+})
+export class LoginComponent implements OnInit {
+  datasource: UserModel;
+  userObservable: any;
+
+  private readonly notifier: NotifierService;
+
+  constructor(
+    private loginService: LoginService,
+    notifierService: NotifierService,
+    private router: Router,
+    private cache: EocCacheService) {
+    this.notifier = notifierService;
+  }
+
+  ngOnInit() {
+    this.datasource = {
+      username: 'add@gmail.com',
+      password: 'password1'
+    } ;
+  }
+
+  login() {
+
+    this.loginService.loginCheck(this.datasource).subscribe(
+      success => {
+        this.userObservable = success;
+        if (success.response === true) {
+          this.cache.set('user', {
+            userdetails: success.data
+          } );
+          this.notifier.notify( 'success', 'Login Successful!' );
+          console.log('login success' + JSON.stringify(this.userObservable));
+          window.location.reload();
+          this.router.navigate(['/profile']);
+        } else {
+          this.notifier.notify( 'error', success.message);
+          console.error('error' + JSON.stringify(this.userObservable));
+
+        }
+      },
+      error => {
+        console.error('error' + JSON.stringify(this.userObservable));
+      }
+    );
+  }
+}
+export interface UserModel {
+  username: string;
+  password: string;
+}
+
+login.spec.ts
+-------------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { LoginComponent } from './login.component';
+
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ LoginComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+login.service.ts
+----------------
+import { Injectable } from '@angular/core';
+import { HttpService } from '../common-services/http-service';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class LoginService {
+  constructor(private http: HttpService) {}
+  loginCheck(data: any): any {
+    return this.http.post('usermanagement/login', data);
+  }
+}
+
+notifications.css
+-----------------
+.card {
+  padding-top: 25px;
+  padding-left: 25px;
+}
+
+notifications.html
+------------------
+<div class="container">
+  <div class="row">
+    <div class="col-3">
+      <div
+        class="text-white bg-primary mb-3"
+        *ngFor="let nEvents of notifyEvents"
+      >
+        <div class="card-header">{{ nEvents.eventName }}</div>
+        <div class="card-body">
+          <p class="card-text">{{ nEvents.eventmsg }}</p>
+          <h6>Eligibility Criteria</h6>
+          <ol>
+            <li>12 th mark percentage :{{ nEvents.eventCriteria1 }} %</li>
+            <li>12 th mark percentage :{{ nEvents.eventCriteria2 }} %</li>
+          </ol>
+          <button
+            class="btn btn-success"
+            (click)="viewDetails(nEvents.event_id, userid)"
+          >
+            View details
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-7">
+      <div class="text-white mb-3 {{cardClass}}" *ngIf="notifyEventsDetails">
+        <div class="eventDetails">
+          <div class="card-header">{{ notifyEventsDetails.eventName }}</div>
+          <div class="card-body">
+            <p class="card-text">{{ notifyEventsDetails.eventmsg }}</p>
+            <h6>Event Criteria</h6>
+            <ol>
+              <li>{{ notifyEventsDetails.eventCriteria1 }}</li>
+              <li>{{ notifyEventsDetails.eventCriteria2 }}</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+notifications.ts
+----------------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { NotificationsComponent } from './notifications.component';
+
+describe('NotificationsComponent', () => {
+  let component: NotificationsComponent;
+  let fixture: ComponentFixture<NotificationsComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ NotificationsComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(NotificationsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+notification.spec.ts
+--------------------
+import { Component, OnInit } from '@angular/core';
+import { NotificationsService } from './notifications.service';
+import { EocCacheService } from '../common-services/cache-service';
+
+@Component({
+  selector: 'app-notifications',
+  templateUrl: './notifications.component.html',
+  styleUrls: ['./notifications.component.css']
+})
+export class NotificationsComponent implements OnInit {
+  notifyEvents: any;
+  userid: any;
+  notifyEventseligiblity: any;
+  notifyEventsDetails: any;
+  cardClass: string;
+
+  constructor(
+    private notifiyService: NotificationsService,
+    private cache: EocCacheService
+  ) { }
+
+  ngOnInit() {
+    this.cardClass = 'bg-primary';
+    this.notifiyService.notificationList().subscribe(
+      success => {
+        this.notifyEvents = success.data;
+      });
+
+    const user = this.cache.get('user');
+    this.userid = user.userdetails.user_id;
+
+  }
+  viewDetails(id: any, uid: any) {
+    const dataSource = {
+      user_id: uid,
+      event_id: id
+    };
+    this.notifiyService.notificationDetail(dataSource).subscribe(
+      success => {
+        this.notifyEventsDetails = success.data;
+        this.notifyEventseligiblity = success.message;
+        if (this.notifyEventseligiblity === 'ELIGIBLE') {
+          this.cardClass = 'bg-success';
+        } else {
+          this.cardClass = 'bg-danger';
+        }
+      });
+  }
+
+}
+
+notification.service.ts
+-----------------------
+import { Injectable } from '@angular/core';
+import { HttpService } from '../common-services/http-service';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class NotificationsService {
+  constructor(private http: HttpService) {}
+  notificationList(): any {
+    return this.http.post('eventmanagement/eventNotification');
+  }
+  notificationDetail(dataSource: any): any {
+    return this.http.post('eventmanagement/eventDetails', dataSource);
+  }
+}
+
+profile.css
+-----------
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+.profile-page {
+  width: 1000px;
+  padding: 8% 0 0;
+  margin: auto;
+
+}
+.form {
+  position: relative;
+  z-index: 1;
+  background: rgb(255, 255, 255);
+  max-width: 950px;
+  margin: 0 auto 100px;
+  padding: 45px;
+
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+.form label{
+  width: 100px;
+  text-align: left;
+}
+.form input {
+  font-family: "Roboto", sans-serif;
+  outline: 0;
+  background: #f2f2f2;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.form label {
+  text-align: right;
+}
+.form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+.form button:hover,.form button:active,.form button:focus {
+  background: #43A047;
+}
+.form .message {
+  margin: 15px 0 0;
+  color: #b3b3b3;
+  font-size: 12px;
+}
+.form .message a {
+  color: #4CAF50;
+  text-decoration: none;
+}
+.form .register-form {
+  display: none;
+}
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.container:before, .container:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.container .info {
+  margin: 50px auto;
+  text-align: center;
+}
+.container .info h1 {
+  margin: 0 0 15px;
+  padding: 0;
+  font-size: 36px;
+  font-weight: 300;
+  color: #1a1a1a;
+}
+.container .info span {
+  color: #4d4d4d;
+  font-size: 12px;
+}
+.container .info span a {
+  color: #000000;
+  text-decoration: none;
+}
+.container .info span .fa {
+  color: #EF3B3A;
+}
+body {
+  background: #57f011; /* fallback for old browsers */
+  background: -webkit-linear-gradient(right, #76b852, #8DC26F);
+  background: -moz-linear-gradient(right, #76b852, #8DC26F);
+  background: -o-linear-gradient(right, #76b852, #8DC26F);
+  background: linear-gradient(to left, #76b852, #8DC26F);
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+profile.html
+------------
+<div class="profile-page">
+  <notifier-container></notifier-container>
+  <div class="form text-center">
+    <form class="login-form">
+        <h2 class="text-center">Hi, {{personName}} </h2>
+
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <input type="text" name="firstname" class="form-control" placeholder="First Name" [(ngModel)]="firstName" /> </div>
+        <div class="form-group col-md-6">
+          <input type="text" name="lastname" class="form-control" placeholder="Last Name" [(ngModel)]="lastName"/>
+        </div></div>
+        <div class="form-group">
+          <input type="text" name="urno" class="form-control" [(ngModel)]="datasource && datasource.urno" placeholder="University Reg No" />
+        </div>
+        <div class="form-row">
+        <div class="form-group col-md-6 ">
+          <label>Date of birth</label>
+          <input type="date" name="dob" class="form-control" [(ngModel)]="datasource && datasource.dob" placeholder="Date of Birth"/>
+        </div>
+
+        <div class="form-group ">
+        Gender
+        <div class="form-group col-md-6">
+          <div class="custom-control custom-radio">
+            <input type="radio" value="m" id="customRadio1" name="customRadio" class="custom-control-input" [(ngModel)]="datasource && datasource.gender">
+            <label class="custom-control-label" for="customRadio1">Male</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" value="f" id="customRadio2" name="customRadio" class="custom-control-input" [(ngModel)]="datasource && datasource.gender">
+            <label class="custom-control-label" for="customRadio2">Female</label>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="form-group">
+        <input type="text" name="address" placeholder="Address" [(ngModel)]="datasource && datasource.address"
+          [required]="true" class="form-control" /> </div>
+
+      <div class="form-group">
+        <input type="text" name="mobile" placeholder="Mobile no" [(ngModel)]="datasource && datasource.mobile"
+          [required]="true" class="form-control" /> </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+           <input type="text" name="course" placeholder="Course" [(ngModel)]="datasource && datasource.course"
+            [required]="true" class="form-control" /></div>
+
+        <div class="form-group col-md-6">
+          <input type="text" name="semester" placeholder="Semester" [(ngModel)]="datasource && datasource.semester"
+            [required]="true" class="form-control" /></div>
+
+        <div class="form-group col-md-6">
+          <input type="text" name="ccgpa" placeholder="Current Percentage" [(ngModel)]="datasource && datasource.ccgpa"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="backlog" placeholder="Number of backlogs" [(ngModel)]="datasource && datasource.backlog"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="sslcboard" placeholder="10 th board of examination" [(ngModel)]="datasource && datasource.sslc_board"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="sslcyop" placeholder="10 th year of passing" [(ngModel)]="datasource && datasource.sslc_yop"
+            [required]="true" class="form-control" /></div>
+
+        <div class="form-group col-md-6">
+          <input type="text" name="sslccgpa" placeholder="10 th Percentage" [(ngModel)]="datasource && datasource.sslc_cgpa"
+            [required]="true" class="form-control" /></div>
+      </div>
+      <div class="form-row">
+
+        <div class="form-group col-md-6">
+          <input type="text" name="hssboard" placeholder="12 th board of examination" [(ngModel)]="datasource && datasource.hss_board"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="hssyop" placeholder="12 th year of passing" [(ngModel)]="datasource && datasource.hss_yop"
+            [required]="true" class="form-control" /></div>
+
+        <div class="form-group col-md-6">
+          <input type="text" name="hsscgpa" placeholder="12 th Percentage" [(ngModel)]="datasource && datasource.hss_cgpa"
+            [required]="true" class="form-control" /></div>
+
+
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <input type="text" name="ugcourse" placeholder="Graduation course name" [(ngModel)]="datasource && datasource.ug_course"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="uguniversity" placeholder="Graduation university name" [(ngModel)]="datasource && datasource.ug_university"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="ugcgpa" placeholder="Graduation Percentage" [(ngModel)]="datasource && datasource.ug_cgpa"
+            [required]="true" class="form-control" /></div>
+        <div class="form-group col-md-6">
+          <input type="text" name="ugyop" placeholder="Graduation year" [(ngModel)]="datasource && datasource.ug_yop"
+            [required]="true" class="form-control" /></div>
+
+
+      </div>
+      <button type="submit" class="btn btn-primary" (click)="profile()">Update my profile</button>
+    </form>
+  </div>
+
+profile.spec.ts
+---------------
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ProfileComponent } from './profile.component';
+
+describe('ProfileComponent', () => {
+  let component: ProfileComponent;
+  let fixture: ComponentFixture<ProfileComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ ProfileComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ProfileComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+profile.ts
+----------
+import { Component, OnInit } from '@angular/core';
+import { NotifierService } from 'angular-notifier';
+import { ProfileService } from './profile.service';
+import { error } from 'util';
+import { EocCacheService } from '../common-services/cache-service';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.css']
+})
+export class ProfileComponent implements OnInit {
+  userObservable: any;
+  datasource: DataSource;
+  private readonly notifier: NotifierService;
+  personName: string;
+  router: any;
+  userid: any;
+  firstName: any;
+  lastName: any;
+  profileData: any;
+  newUser: boolean;
+
+  constructor(
+    private profileCheck: ProfileService,
+    notifierService: NotifierService,
+    private cache: EocCacheService
+  ) {
+    this.notifier = notifierService;
+  }
+
+  ngOnInit() {
+    const user = this.cache.get('user');
+    this.personName =
+      user.userdetails.firstname + ' ' + user.userdetails.lastname;
+    this.firstName = user.userdetails.firstname;
+    this.lastName = user.userdetails.lastname;
+    this.userid = user.userdetails.user_id;
+
+    const getuser = {
+      'user_id': this.userid
+      };
+
+      this.newUser = false;
+
+    this.profileCheck.getProfile(getuser).subscribe(success => {
+      this.datasource = success.data;
+      if (this.datasource === null) {
+        this.newUser = true;
+      }
+    });
+  }
+  profile() {
+    if (this.newUser) {
+      this.profileCheck.profileInsert(this.datasource).subscribe(success => {
+        this.datasource = success.data;
+        if (success.response === true) {
+          this.notifier.notify( 'success', 'Profile Added Successful!' );
+        }
+    });
+  } else {
+    this.profileCheck.profileUpdate(this.datasource).subscribe(success => {
+      this.datasource = success.data;
+      if (success.response === true) {
+        this.notifier.notify( 'success', 'Profile Updated Successful!' );
+      }
+    });
+  }
+  }
+}
+export interface DataSource {
+  dob: string;
+  urno: string;
+  user_id: string;
+  gender: string;
+  mobile: string;
+  address: string;
+  course: string;
+  semester: string;
+  ccgpa: string;
+  backlog: string;
+  sslc_board: string;
+  sslc_yop: string;
+  sslc_cgpa: string;
+  hss_board: string;
+  hss_yop: string;
+  hss_cgpa: string;
+  ug_university: string;
+  ug_course: string;
+  ug_yop: string;
+  ug_cgpa: string;
+}
+
+// export interface ProfileModel {
+//   fname?: string;
+//   lname?: string;
+//   dob?: string;
+//   urno?: string;
+//   user_id?: string;
+//   gender?: string;
+//   mobile?: string;
+//   address?: string;
+//   course?: string;
+//   semester?: string;
+//   ccgpa?: string;
+//   backlog?: string;
+//   sslcboard?: string;
+//   sslcyop?: string;
+//   sslccgpa?: string;
+//   hssboard?: string;
+//   hssyop?: string;
+//   hsscgpa?: string;
+//   uguniversity?: string;
+//   ugcourse?: string;
+//   ugyop?: string;
+//   ugcgpa?: string;
+
+//   password?: string;
+// }
+
+profile.service.ts
+------------------
+import { Injectable } from '@angular/core';
+import { HttpService } from '../common-services/http-service';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ProfileService {
+  constructor(private http: HttpService) {}
+  getProfile(data: any): any {
+    return this.http.post('usermanagement/userprofiledisplay', data);
+  }
+  profileUpdate(data: any): any {
+    return this.http.post('usermanagement/userprofileupdate', data);
+  }
+  profileInsert(data: any): any {
+    return this.http.post('usermanagement/userprofile', data);
+  }
+}
+
